@@ -9,7 +9,7 @@ Steps to reproduce SSH mapping workflow:
 
 1. Download L4 MUR SST product for desired years (2010-2022 in our paper) from NASA PO.DAAC, L3 SSH observations from CMEMS, MDT from CMEMS, bathymetry from GEBCO, and auxilliary data sets from the 2023a Ocean Data Challenge (./data/sad).
 2. Create a 'raw' directory with 5615 subdirectories named with integers from 0 to 5614 inclusive.
-3. Run generate_global_data.py script. This is the slowest part of the pipeline and could take multiple days depending on number of CPUs available, this is a one time pre-processing step though to subset the observations in the local patches and doesn't need to be repeated if detals of the training/inference procedure is changed at a later date.
+3. Run generate_global_data.py script. This is the slowest part of the pipeline and could take multiple days depending on number of CPUs available, this is a one time pre-processing step to subset the observations in the local patches and doesn't need to be repeated if details of the training/inference procedure is changed at a later date.
 4. Run pre_process_training.py to generate ML-ready TFRecord input-output pairs for both training and cross-validation.
 5. Run simvp_ddp_training.py to train the neural network (SimVP).
 6. Run pre_process_testing.py to generate the input data for creating global SSH maps for 2019, the withheld testing year. NB the input currently withholds Saral/Altika for independent evaluation purposes, the desired altimeter constellation can be specified in the code.
