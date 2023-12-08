@@ -18,4 +18,9 @@ Steps to reproduce SSH mapping workflow:
 
 We also provide checkpoint files for the models used in the paper, in which case steps 4-5 can be skipped. These checkpoint files were too large for GitHub but are stored in a Harvard DataVerse along with the SSH maps (ADD REPO LINK ONCE UPLOADED).
 
+Minor adaptations to simvp_ddp_training.py would allow any PyTorch model that takes the right input/output dimensions to be used instead. 
+
+The SimVP code was only minorly adapted from the original implementation (https://github.com/chengtan9907/OpenSTL) to remove skip connections and allow for the inclusion of SST.
+
+Other python scripts are included for estimating surface geostrophic currents, and dynamical quantities considered in the paper as well as to subset the global maps for use with FlowSieve in the spectral KE flux calculations.
 
