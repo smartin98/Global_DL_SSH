@@ -120,9 +120,9 @@ def subset(ds, ds_mdt, lon0, lat0, domain_name, duacs):
     ds_gos = xr.Dataset({"uo":da_ugos,"vo":da_vgos})
     
     if duacs:
-        ds_gos.to_netcdf(save_dir+domain_name+f'_{lon0}_{lat0}.nc')
+        ds_gos.to_netcdf(save_dir+domain_name+f'_duacs_{lon0}_{lat0}.nc')
     else:
-        ds_gos.to_netcdf(save_dir+domain_name+f'_{lon0}_{lat0}.nc')
+        ds_gos.to_netcdf(save_dir+domain_name+f'_simvp_{lon0}_{lat0}.nc')
     
 
 ## N ATLANTIC
