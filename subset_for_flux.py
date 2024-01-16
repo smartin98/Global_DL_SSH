@@ -54,8 +54,8 @@ def subset(ds, ds_mdt, lon0, lat0, domain_name, duacs):
     ugosa = np.array(ds_crop['ugosa'].load())
     vgosa = np.array(ds_crop['vgosa'].load())
     if not duacs:
-        ugos = ugosa + np.array(ds_mdt_crop['u_mdt'])
-        vgos = vgosa + np.array(ds_mdt_crop['v_mdt'])
+        ugos = ugosa + np.array(ds_mdt_crop['u'])
+        vgos = vgosa + np.array(ds_mdt_crop['v'])
     else:
         ugos = np.array(ds_crop['ugos'].load())
         vgos = np.array(ds_crop['vgos'].load())

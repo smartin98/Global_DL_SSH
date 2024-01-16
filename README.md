@@ -18,7 +18,9 @@ Steps to reproduce SSH mapping workflow:
 9. Optionally, run calculate_currents.py to calculate surface geostrophic currents, vorticity, and strain rate from the SSH maps.
 10. Optionally, run subset_for_flux.py to subset the data for the local coarse graining analysis used in the paper to study KE cascade (coarse graining can then be performed using [FlowSieve](https://github.com/husseinaluie/FlowSieve)).
 
-We also provide checkpoint files for the models used in the paper, in which case steps 4-5 can be skipped. These checkpoint files were too large for GitHub but are stored in a Harvard DataVerse [repo](https://doi.org/10.7910/DVN/H4HQGD) along with the SSH maps.
+We also provide checkpoint files for the models used in the paper, in which case steps 4-5 can be skipped. These checkpoint files were too large for GitHub but are stored in a Harvard Dataverse [repo](https://doi.org/10.7910/DVN/H4HQGD) along with the SSH maps.
+
+Also provided in the Dataverse repo are pre-processed input files for predicting global maps for 2019 using all satellites apart from SARAL/Altika (in line with the data challenge setup), this allows steps 1-6 to be skipped if you only want to run inference with a trained network.
 
 Minor adaptations to simvp_ddp_training.py would allow any PyTorch model that takes the right input/output dimensions to be used instead. 
 
