@@ -20,7 +20,7 @@ Steps to reproduce SSH mapping workflow:
 
 We also provide checkpoint files for the models used in the paper, in which case steps 4-5 can be skipped. These checkpoint files were too large for GitHub but are stored in a Harvard Dataverse [repo](https://doi.org/10.7910/DVN/H4HQGD) along with the SSH maps.
 
-Also provided in the Dataverse repo are pre-processed input files for predicting global maps for 2019 using all satellites apart from SARAL/Altika (in line with the data challenge setup), this allows steps 1-6 to be skipped if you only want to run inference with a trained network.
+Also provided in the Dataverse repo are pre-processed input files for predicting global maps for 2019 using all satellites apart from SARAL/Altika (in line with the data challenge setup), this allows steps 1-6 to be skipped if you only want to run inference with a trained network. This pre-processed inference data takes up ~600GB of storage.
 
 Minor adaptations to simvp_ddp_training.py would allow any PyTorch model that takes the right input/output dimensions to be used instead. 
 
@@ -28,3 +28,6 @@ The SimVP code was only minorly adapted from the original implementation (https:
 
 Other python scripts are included for estimating surface geostrophic currents, and dynamical quantities considered in the paper as well as to subset the global maps for use with FlowSieve in the spectral KE flux calculations.
 
+Python package versions used:
+
+NumPy 1.19.5, SciPy 1.4.1, Xarray 0.20.1, PyProj 3.2.1, TensorFlow 2.4.1 (for pre-processing scripts, training/inference was run on a different platform where we used 2.12.0 though I expect it would work with either version), PyTorch 2.0.1, Pandas 1.3.4, Pyinterp 0.11.0.
