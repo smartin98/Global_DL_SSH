@@ -28,6 +28,6 @@ The SimVP code was only minorly adapted from the original implementation (https:
 
 Other python scripts are included for estimating surface geostrophic currents, and dynamical quantities considered in the paper as well as to subset the global maps for use with FlowSieve in the spectral KE flux calculations.
 
-Python package versions used:
+We used Python version 3.7.6 with the following python package versions:
 
 NumPy 1.19.5, SciPy 1.4.1, Xarray 0.20.1, PyProj 3.2.1, TensorFlow 2.4.1 (for pre-processing scripts, training/inference was run on a different platform where we used 2.12.0 though I expect it would work with either version), PyTorch 2.0.1, Pandas 1.3.4, Pyinterp 0.11.0.

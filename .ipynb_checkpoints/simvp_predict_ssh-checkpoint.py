@@ -93,7 +93,7 @@ n = 128
 batch_size = 50 # DON'T CHANGE, THIS IS FIXED IN THE PRE-PROCESSING TO BE 1 BATCH PER FILE
 n_obs_max = 400 # max number of SSH observations on any day in loss function, allows to have fixed size inputs/outputs with zero padding making it easier to create TFRecord dataset
 n_train_samples = 1000000
-experiment_name = f'simvp_ssh_sst_ns1000000_global_'
+experiment_name = f'simvp_ssh_sst_ns1000000global_'
 weight_epoch = 48
 n_regions = 5615
               
