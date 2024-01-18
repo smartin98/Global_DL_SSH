@@ -7,8 +7,8 @@ os.environ['MASTER_PORT'] = '55000'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tmp_dir = '~/tmp'
 os.environ['TMPDIR'] = tmp_dir
-import tensorflow as tf
-tf.config.set_visible_devices([], device_type='GPU')
+# import tensorflow as tf
+# tf.config.set_visible_devices([], device_type='GPU')
 
 import numpy as np
 from src.pytorch_losses import *
