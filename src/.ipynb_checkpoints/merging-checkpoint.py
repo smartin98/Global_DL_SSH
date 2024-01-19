@@ -378,13 +378,13 @@ def merge_maps_and_save(pred_dir, pred_file_pattern, pred_date, output_nc_dir, m
     print(f'Mapping {pred_date}')
     # load and re-format the land_mask netcdf
     ds_mask = xr.open_dataset(mask_filename)
-    ds_mask = ds_mask.rename({'lon': 'longitude', 'lat': 'latitude'})
-    ds_mask = ds_mask.assign_coords(longitude=(ds_mask.longitude % 360)).roll(longitude=(ds_mask.dims['longitude'] // 2), roll_coords=True)
+    # ds_mask = ds_mask.rename({'lon': 'longitude', 'lat': 'latitude'})
+    # ds_mask = ds_mask.assign_coords(longitude=(ds_mask.longitude % 360)).roll(longitude=(ds_mask.dims['longitude'] // 2), roll_coords=True)
     
     # load and re-format the coast distance netcdf
     ds_dist = xr.open_dataset(dist_filename)
-    ds_dist = ds_dist.rename({'lon': 'longitude', 'lat': 'latitude'})
-    ds_dist = ds_dist.assign_coords(longitude=(ds_dist.longitude % 360)).roll(longitude=(ds_dist.dims['longitude'] // 2), roll_coords=True)
+    # ds_dist = ds_dist.rename({'lon': 'longitude', 'lat': 'latitude'})
+    # ds_dist = ds_dist.assign_coords(longitude=(ds_dist.longitude % 360)).roll(longitude=(ds_dist.dims['longitude'] // 2), roll_coords=True)
     
     ds_mdt = xr.open_dataset(mdt_filename).isel(time=0)
     
