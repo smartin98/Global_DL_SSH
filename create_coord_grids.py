@@ -90,4 +90,4 @@ for r in range(ocean_coords.shape[0]):
     
     coords_data[r,] = coord_grid
     
-np.save('./coord_grids.npy', coord_data)
+np.save('./coord_grids.npy', coords_data)
