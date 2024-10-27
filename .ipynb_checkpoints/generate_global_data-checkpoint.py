@@ -28,7 +28,7 @@ from random import shuffle
 import copy
 from global_land_mask import globe
 
-from global_data_utils import *
+from src.global_data_utils import *
 
 ############ DEFINITIONS ######################
 
@@ -43,78 +43,6 @@ transformer_xyz2ll = pyproj.Transformer.from_crs(
         )
 
 
-# generate the lat/lon coords to center the local patches on (RUN FIRST TIME ONLY AND SAVE COORDS FOR FUTURE USE):
-
-L = 250 # spacing of reconstruction patches in km
-R = 6378 # radius of earth in km
-# lat-lon extent of global grid of reconstruction patches:
-lat_min = -70
-lat_max = 65
-lon_min = -180
-lon_max = 180
-# create mesh of roughly equally spaced reconstruction patch centers:
-dtheta = np.rad2deg(L/R)
-lat = np.linspace(lat_min,lat_max,int((lat_max-lat_min)/dtheta))
-coords = np.empty((int(1e5),2))
-count = 0
-dphis = np.zeros_like(lat)
-for i in range(lat.shape[0]):
-    dphi = np.rad2deg(L/(R*np.abs(np.cos(np.deg2rad(lat[i])))))
-    lon_loop = lon_min + dphi/2
-    while lon_loop<lon_max:
-        coords[count,0] = lon_loop
-        coords[count,1] = lat[i]
-        count+=1
-        lon_loop+=dphi
-    if lon_loop-lon_max<=0.5*dphi:
-        lon_loop = lon_max-dphi/2
-        coords[count,0] = lon_loop
-        coords[count,1] = lat[i]
-        count+=1
-
-coords = coords[:count,:]
-
-# PART 2 SINCE WENT BACK AND ADDED HIGHER LATITUDES LATER
-# lat-lon extent of global grid of reconstruction patches:
-lat_min = 65
-lat_max = 80
-lon_min = -180
-lon_max = 180
-# create mesh of roughly equally spaced reconstruction patch centers:
-dtheta = np.rad2deg(L/R)
-lat = np.linspace(lat_min,lat_max,int((lat_max-lat_min)/dtheta))
-coords2 = np.empty((int(1e5),2))
-count = 0
-dphis = np.zeros_like(lat)
-for i in range(lat.shape[0]):
-    dphi = np.rad2deg(L/(R*np.abs(np.cos(np.deg2rad(lat[i])))))
-    lon_loop = lon_min + dphi/2
-    while lon_loop<lon_max:
-        coords2[count,0] = lon_loop
-        coords2[count,1] = lat[i]
-        count+=1
-        lon_loop+=dphi
-    if lon_loop-lon_max<=0.5*dphi:
-        lon_loop = lon_max-dphi/2
-        coords2[count,0] = lon_loop
-        coords2[count,1] = lat[i]
-        count+=1
-
-coords2 = coords2[:count,:]
-
-
-coords = np.concatenate([coords,coords2],axis=0)
-# remove land points:
-idx_ocean = []
-for i in range(count):
-    if ~globe.is_land(coords[i,1], coords[i,0]):
-        idx_ocean.append(i)
-ocean_coords = np.zeros((len(idx_ocean),2))
-for i in range(len(idx_ocean)):
-    ocean_coords[i,:] = coords[idx_ocean[i],:]
-np.save('./coord_grids.npy',ocean_coords)
-
-
 regions = np.load('./coord_grids.npy')
 lon0 = 0.25*(regions[:,63,63,0]+regions[:,64,63,0]+regions[:,63,64,0]+regions[:,64,64,0])
 lat0 = 0.25*(regions[:,63,63,1]+regions[:,64,63,1]+regions[:,63,64,1]+regions[:,64,64,1])
@@ -124,7 +52,7 @@ ocean_coords = np.stack((lon0,lat0),axis=-1)
 date_start = date(2023,3,20)
 date_end = date(2023,5,20)
 n_days = (date_end-date_start).days
-# n_centers = len(idx_ocean)
+
 n = 128 # pixels in nxn local grids
 L_x = 960e3 # size of local grid in m
 L_y = 960e3 # size of local grid in m
