@@ -39,13 +39,13 @@ def serialize_example(input_array, output_array):
 
 def parse_example(serialized_example):
     feature_description = {
-        'input': tf.io.FixedLenFeature(int(batch_size*(N_t+1)*n*n*2), tf.float32),
+        'input': tf.io.FixedLenFeature(int(batch_size*N_t*n*n*2), tf.float32),
         'output': tf.io.FixedLenFeature(int(batch_size*N_t*n_obs_max*3), tf.float32)
     }
     example = tf.io.parse_single_example(serialized_example, feature_description)
 
-    input_data = tf.reshape(example['input'], [batch_size,N_t+1,n,n,2])
-    output_data = tf.reshape(example['output'], [batch_size,N_t,n_obs_max,3])
+    input_data = tf.reshape(example['input'], [batch_size, N_t, n, n, 2])
+    output_data = tf.reshape(example['output'], [batch_size, N_t, n_obs_max, 3])
 
     return input_data, output_data
 
@@ -166,9 +166,6 @@ def save_batch(batch):
             files_tracks = [f for f in files_raw if 'tracks' in f]
             files_tracks = [f for f in files_tracks if not any(substring in f for substring in test_sats)] # removes the test sat for all years
             files_sst = [f for f in files_raw if 'sst_hr' in f]
-            
-            bathymetry = np.load(raw_dir+'bathymetry.npy')
-            mdt = np.load(raw_dir+'mdt.npy')
 
             output_data_final = []
             n_tot = []
@@ -199,8 +196,6 @@ def save_batch(batch):
                 input_data_final[sample,t_loop,:,:,1] = sst_loop
                 output_data_final.append(output_ssh)
 
-            input_data_final[sample,-1,:,:,0] = bathymetry
-            input_data_final[sample,-1,:,:,1] = mdt
             lengths = []
             for i in range(len(output_data_final)):
                 lengths.append(output_data_final[i].shape[0])
@@ -209,12 +204,13 @@ def save_batch(batch):
                     output_npy[sample,i,:lengths[i],:] = output_data_final[i]
                 else:
                     output_npy[sample,i,:,:] = output_data_final[i][:n_obs_max,:]
-            sst_total = input_data_final[sample,:-1,:,:,1]
+            sst_total = input_data_final[sample,:,:,:,1]
             # condition to exclude examples with extreme sea ice cover:
             if (np.size(sst_total[sst_total==0])<0.9*np.size(sst_total)) or (np.sum(n_tot)/N_t>1):
                 trying = False
 
             regions[sample] = int(r)
+            
     if save_regions:
         np.save(save_dir+'_regions'+f'/batch_{batch}_regions.npy',regions)
 

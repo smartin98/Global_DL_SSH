@@ -39,12 +39,12 @@ def serialize_example(input_array, output_array):
 
 def parse_example(serialized_example):
     feature_description = {
-        'input': tf.io.FixedLenFeature(int(batch_size*(N_t+1)*n*n*2), tf.float32),
+        'input': tf.io.FixedLenFeature(int(batch_size*N_t*n*n*2), tf.float32),
         'output': tf.io.FixedLenFeature(int(batch_size*N_t*n_obs_max*3), tf.float32)
     }
     example = tf.io.parse_single_example(serialized_example, feature_description)
 
-    input_data = tf.reshape(example['input'], [batch_size,N_t+1,n,n,2])
+    input_data = tf.reshape(example['input'], [batch_size,N_t,n,n,2])
     output_data = tf.reshape(example['output'], [batch_size,N_t,n_obs_max,3])
 
     return input_data, output_data
@@ -138,18 +138,11 @@ def save_batches(region):
     for t in range(395):
         date_loop = start_date + datetime.timedelta(days = t)
         
-        if t==0:
-            bathymetry = np.load(raw_dir+'bathymetry.npy')
-            mdt = np.load(raw_dir+'mdt.npy')
-
-        
-        # 
-        # for t_loop in range(N_t):
-        
         ssh_files = [f for f in files_tracks if f'{date_loop}' in f]
         sst_hr_files = [f for f in files_sst_hr if f'{date_loop}' in f]
-        sst_lr_files = [f for f in files_sst_lr if f'{date_loop}' in f]
+
         n_tot.append(len(ssh_files)) # number of sats passing over on that day
+        
         if len(sst_hr_files)>0:
             try:
                 sst_loop_hr = np.load(raw_dir+sst_hr_files[0])
@@ -166,12 +159,12 @@ def save_batches(region):
                 sats.append(f[11:-15])
             except: 
                 data_tracks.append(np.zeros((1,3)))
+            
         input_ssh = bin_ssh(data_tracks,sats,L_x,L_y, n, filtered)
     
         input_data_final[t,:,:,0] = sst_loop_hr
         input_data_final[t,:,:,1] = input_ssh
         
-
 
     np.save(save_dir + f'/input_data_region{region}.npy', input_data_final)
     

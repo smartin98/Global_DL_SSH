@@ -190,12 +190,8 @@ def grid_mdt(data_duacs, n, L_x, L_y, lon0, lat0, tri):
     lat = lat.flatten()
     mdt = np.array(data_duacs['mdt']).flatten()
 
-    # calculate ENU coords of data on tangent plane
-    # x,y,_ = ll2xyz_fast(lat, lon, 0, lat0, 0, 0, transformer_ll2xyz)
     mdt[np.isnan(mdt)] = 0
     mdt = mdt.flatten()
-    # x = x.flatten()
-    # y = y.flatten()
     x_hr = np.linspace(-L_x/2,L_x/2,n)
     y_hr = np.linspace(L_y/2,-L_y/2,n)
     x_hr,y_hr = np.meshgrid(x_hr,y_hr)
@@ -208,45 +204,6 @@ def grid_mdt(data_duacs, n, L_x, L_y, lon0, lat0, tri):
 
     return mdt_grid
 
-# bin average GEBCO bathymetry onto the local grid
-def grid_bath(data_bath, n, L_x, L_y, lon0, lat0, coord_grid):
-
-    lon_grid = coord_grid[:,:,0].flatten()
-    lat_grid = coord_grid[:,:,1].flatten()
-    lat_max = np.max(lat_grid)
-    lat_min = np.min(lat_grid)
-
-    if ((np.size(lon_grid[lon_grid>175])>0) and (np.size(lon_grid[lon_grid<-175])>0)):
-        long_max_unshifted = np.max(lon_grid[lon_grid<0])
-        long_min_unshifted = np.min(lon_grid[lon_grid>0])
-    else:
-        long_max_unshifted = np.max(lon_grid)
-        long_min_unshifted = np.min(lon_grid)
-
-    if long_max_unshifted>long_min_unshifted:
-        data_bath = data_bath.isel(lon = (data_bath.lon < long_max_unshifted) & (data_bath.lon > long_min_unshifted),drop = True)
-    else:
-        data_bath = data_bath.isel(lon = (data_bath.lon < long_max_unshifted) | (data_bath.lon > long_min_unshifted),drop = True)
-    data_bath = data_bath.sel(lat=slice(lat_min,lat_max), drop = True)
-
-    data_bath['lon'] = (data_bath['lon']-lon0+180)%360-180
-
-    lon = np.array(data_bath['lon'])
-    lat = np.array(data_bath['lat'])
-    lon, lat = np.meshgrid(lon, lat)
-
-    lon = lon.flatten()
-    lat = lat.flatten()
-    bath = np.array(data_bath['elevation']).flatten()
-
-    # calculate ENU coords of data on tangent plane
-    x,y,_ = ll2xyz(lat, lon, 0, lat0, 0, 0, transformer_ll2xyz)
-    bath[np.isnan(bath)] = 0
-    bath_grid, _,_,_ = stats.binned_statistic_2d(x, y, bath, statistic = 'mean', bins=n, range = [[-L_x/2, L_x/2],[-L_y/2, L_y/2]])
-    bath_grid = np.rot90(bath_grid)
-    bath_grid[bath_grid>0] = 0 # set land to zero
-    
-    return bath_grid
 
 # find coords of along track observations on local grid
 def extract_tracked(ds, L_x, L_y, lon0, lat0, transformer_ll2xyz, nrt):
@@ -266,71 +223,99 @@ def extract_tracked(ds, L_x, L_y, lon0, lat0, transformer_ll2xyz, nrt):
     # calculate ENU coords of along-track obs
     x,y,z = ll2xyz(latitude, longitude, 0, lat0, 0, 0, transformer_ll2xyz)
     
-    sla_f = sla_f[z>-1000e3]
-    sla_uf = sla_uf[z>-1000e3]
-    y = y[z>-1000e3]
-    x = x[z>-1000e3]
-    
-    sla_f = sla_f[x<L_x/2]
-    sla_uf = sla_uf[x<L_x/2]
-    y = y[x<L_x/2]
-    x = x[x<L_x/2]
-    
-    sla_f = sla_f[x>-L_x/2]
-    sla_uf = sla_uf[x>-L_x/2]
-    y = y[x>-L_x/2]
-    x = x[x>-L_x/2]
-    
-    sla_f = sla_f[y<L_y/2]
-    sla_uf = sla_uf[y<L_y/2]
-    x = x[y<L_y/2]
-    y = y[y<L_y/2]
-    
-    sla_f = sla_f[y>-L_y/2]
-    sla_uf = sla_uf[y>-L_y/2]
-    x = x[y>-L_y/2]
-    y = y[y>-L_y/2]
+    mask = (z > -1000e3) & (x < L_x / 2) & (x > -L_x / 2) & (y < L_y / 2) & (y > -L_y / 2)
+    x, y, sla_f, sla_uf = x[mask], y[mask], sla_f[mask], sla_uf[mask]
     
     tracks = np.stack([x, y, sla_f, sla_uf], axis = -1)
     return tracks
 
-# bin average high res MUR L4 SST (MW+IR observations)
+# # bin average high res MUR L4 SST (MW+IR observations)
+# def grid_sst_hr(ds, n, L_x, L_y, lon0, lat0, coord_grid):
+    
+#     lon_grid = coord_grid[:,:,0].flatten()
+#     lat_grid = coord_grid[:,:,1].flatten()
+#     lat_max = np.max(lat_grid)
+#     lat_min = np.min(lat_grid)
+
+#     if ((np.size(lon_grid[lon_grid>175])>0) and (np.size(lon_grid[lon_grid<-175])>0)):
+#         long_max_unshifted = np.max(lon_grid[lon_grid<0])
+#         long_min_unshifted = np.min(lon_grid[lon_grid>0])
+#     else:
+#         long_max_unshifted = np.max(lon_grid)
+#         long_min_unshifted = np.min(lon_grid)
+
+#     if long_max_unshifted>long_min_unshifted:
+#         ds = ds.isel(lon = (ds.lon < long_max_unshifted) & (ds.lon > long_min_unshifted),drop = True)
+#     else:
+#         ds = ds.isel(lon = (ds.lon < long_max_unshifted) | (ds.lon > long_min_unshifted),drop = True)
+#     ds = ds.sel(lat=slice(lat_min,lat_max), drop = True)
+
+#     ds['lon'] = (ds['lon']-lon0+180)%360-180
+
+#     lon = np.array(ds['lon'])
+#     lat = np.array(ds['lat'])
+#     lon, lat = np.meshgrid(lon, lat)
+
+#     lon = lon.flatten()
+#     lat = lat.flatten()
+#     sst = np.array(ds['analysed_sst']).flatten()
+
+#     # calculate ENU coords of data on tangent plane
+#     x,y,_ = ll2xyz(lat, lon, 0, lat0, 0, 0, transformer_ll2xyz)
+#     sst[np.isnan(sst)] = 0
+#     sst_grid, _,_,_ = stats.binned_statistic_2d(x, y, sst, statistic = 'mean', bins=n, range = [[-L_x/2, L_x/2],[-L_y/2, L_y/2]])
+#     sst_grid = np.rot90(sst_grid)
+#     sst_grid[sst_grid<273] = 0
+#     return sst_grid
+
+
+# function in original release with paper was very slow, this is better optimized.
 def grid_sst_hr(ds, n, L_x, L_y, lon0, lat0, coord_grid):
     
-    lon_grid = coord_grid[:,:,0].flatten()
-    lat_grid = coord_grid[:,:,1].flatten()
-    lat_max = np.max(lat_grid)
-    lat_min = np.min(lat_grid)
+    lon_grid = coord_grid[:,:,0].ravel()
+    lat_grid = coord_grid[:,:,1].ravel()
+    lat_max = np.max(lat_grid)+0.1
+    lat_min = np.min(lat_grid)-0.1
 
+    
+    ds = ds.sel(lat=slice(lat_min,lat_max), drop = True)
+    
     if ((np.size(lon_grid[lon_grid>175])>0) and (np.size(lon_grid[lon_grid<-175])>0)):
-        long_max_unshifted = np.max(lon_grid[lon_grid<0])
-        long_min_unshifted = np.min(lon_grid[lon_grid>0])
+        long_max_unshifted = np.max(lon_grid[lon_grid<0]) + 0.1
+        long_min_unshifted = np.min(lon_grid[lon_grid>0]) - 0.1
+        
     else:
-        long_max_unshifted = np.max(lon_grid)
-        long_min_unshifted = np.min(lon_grid)
-
+        long_max_unshifted = np.max(lon_grid) + 0.1
+        long_min_unshifted = np.min(lon_grid) - 0.1
+ 
     if long_max_unshifted>long_min_unshifted:
         ds = ds.isel(lon = (ds.lon < long_max_unshifted) & (ds.lon > long_min_unshifted),drop = True)
     else:
-        ds = ds.isel(lon = (ds.lon < long_max_unshifted) | (ds.lon > long_min_unshifted),drop = True)
-    ds = ds.sel(lat=slice(lat_min,lat_max), drop = True)
+        ds1 = ds.isel(lon = (ds.lon < long_max_unshifted),drop=True)
+        ds2 = ds.isel(lon = (ds.lon > long_min_unshifted),drop=True)
+        ds = xr.concat([ds1,ds2],'lon') 
+    
+    ds = ds.load()
 
     ds['lon'] = (ds['lon']-lon0+180)%360-180
 
-    lon = np.array(ds['lon'])
-    lat = np.array(ds['lat'])
+    lon = ds['lon']
+    lat = ds['lat']
     lon, lat = np.meshgrid(lon, lat)
 
     lon = lon.flatten()
     lat = lat.flatten()
-    sst = np.array(ds['analysed_sst']).flatten()
+    
+    sst = np.array(ds['analysed_sst']).ravel()
+    sst[np.isnan(sst)] = 0
 
     # calculate ENU coords of data on tangent plane
     x,y,_ = ll2xyz(lat, lon, 0, lat0, 0, 0, transformer_ll2xyz)
-    sst[np.isnan(sst)] = 0
     sst_grid, _,_,_ = stats.binned_statistic_2d(x, y, sst, statistic = 'mean', bins=n, range = [[-L_x/2, L_x/2],[-L_y/2, L_y/2]])
+    
     sst_grid = np.rot90(sst_grid)
-    sst_grid[sst_grid<273] = 0
+    sst_grid[sst_grid<270] = 0
+    
     return sst_grid
 
 #pre-compute delaunay triangulation to interpolate LR SST for each day since grid unhchanging in time
@@ -375,56 +360,6 @@ def sst_lr_delaunay(ds, n, L_x, L_y, lon0, lat0):
     tri = Delaunay(np.stack((x,y),axis=-1))
     
     return tri
-
-# use computed Delaunay triangulation to interpolate SST LR
-def grid_sst_lr(ds, n, L_x, L_y, lon0, lat0,tri):
-    buffer = 0.05e6 # buffer to avoid exluding data due to inverse stereographic (rather than orthographic) projection
-    boxx, boxy = box([-L_x/2-buffer,L_x/2+buffer],[-L_y/2-buffer,L_y/2+buffer])
-    alt0 = 0
-    # calculate shape of lat, lon region to grid data from
-    boxlat, boxlong = xyz2ll(boxx, boxy, 0, lat0, lon0, 0, transformer_ll2xyz, transformer_xyz2ll)
-    lat_max = np.max(boxlat)
-    lat_min = np.min(boxlat)
-    long_max = np.max(boxlong)
-    long_min = np.min(boxlong)
-
-    if ((np.size(boxlong[boxlong>175])>0) and (np.size(boxlong[boxlong<-175])>0)):
-        long_max_unshifted = np.max(boxlong[boxlong<0])
-        long_min_unshifted = np.min(boxlong[boxlong>0])
-    else:
-        long_max_unshifted = np.max(boxlong)
-        long_min_unshifted = np.min(boxlong)
-    
-    if long_max_unshifted>long_min_unshifted:
-        ds = ds.isel(lon = (ds.lon < long_max_unshifted) & (ds.lon > long_min_unshifted),drop = True)
-    else:
-        ds = ds.isel(lon = (ds.lon < long_max_unshifted) | (ds.lon > long_min_unshifted),drop = True)
-    ds = ds.sel(lat=slice(lat_min,lat_max), drop = True)
-    ds['lon'] = (ds['lon']-lon0+180)%360-180
-
-    lon = np.array(ds['lon'])
-    lat = np.array(ds['lat'])
-    lon, lat = np.meshgrid(lon, lat)
-
-    lon = lon.flatten()
-    lat = lat.flatten()
-    sst = np.array(ds['analysed_sst']).flatten()
-
-    sst[np.isnan(sst)] = 0
-    sst = sst.flatten()
-    x_hr = np.linspace(-L_x/2,L_x/2,n)
-    y_hr = np.linspace(L_y/2,-L_y/2,n)
-    x_hr,y_hr = np.meshgrid(x_hr,y_hr)
-    x_hr = x_hr.flatten()
-    y_hr = y_hr.flatten()
-
-    interpolator = LinearNDInterpolator(tri, sst)
-    sst_interp = interpolator(x_hr,y_hr)
-    # sst_interp = interpolate.griddata(points=np.stack((x,y),axis=-1),values=sst,xi=np.stack((x_hr,y_hr),axis=-1),method = 'linear')
-    sst_grid = sst_interp.reshape((n,n))
-    sst_grid[sst_grid<273] = 0
-
-    return sst_grid
 
 # use bathymetry nc file to find the lat, lon coords for the local tangent grid since this is the highest res gridded dataset and our coordinate transformation isn't analytically invertible.
 def grid_coords(ds, n, L_x, L_y, lon0, lat0):

@@ -44,16 +44,15 @@ def load_and_preprocess_batch(file_path):
 @tf.function
 def parse_example(serialized_example):
     feature_description = {
-        'input': tf.io.FixedLenFeature(int(batch_size*(n_t+1)*n*n*2), tf.float32),
+        'input': tf.io.FixedLenFeature(int(batch_size*n_t*n*n*2), tf.float32),
         'output': tf.io.FixedLenFeature(int(batch_size*n_t*n_obs_max*3), tf.float32)
     }
     try:
         example = tf.io.parse_single_example(serialized_example, feature_description)
 
-        input_data = tf.reshape(example['input'], [batch_size,n_t+1,n,n,2])
-        input_data = input_data[:,:-1,:,:,0]
-        input_data_new = normalise_ssh(input_data)
-        input_data = tf.transpose(tf.reshape(input_data_new,[batch_size,n_t,n,n,1]),perm=[0,1,4,2,3])
+        input_data = tf.reshape(example['input'], [batch_size,n_t,n,n,2])
+        input_data = normalise_ssh(input_data)
+        input_data = tf.transpose(tf.reshape(input_data,[batch_size,n_t,n,n,1]),perm=[0,1,4,2,3])
 
         output_data = tf.reshape(example['output'], [batch_size,n_t,n_obs_max,3])
 
@@ -65,25 +64,24 @@ def parse_example(serialized_example):
         sla_new = normalise_ssh(sla)
 
         outvar = tf.stack((x_new,y_new,sla_new),axis = -1)
+        
     except:
         tf.print('File: '+serialized_example+' is corrupted')
         input_data = tf.zeros([batch_size,n_t,1,n,n],tf.float32)
         outvar = tf.zeros([batch_size,n_t,n_obs_max,3],tf.float32)
-        
 
     return input_data, outvar
 
 @tf.function
 def parse_example_sst(serialized_example):
     feature_description = {
-        'input': tf.io.FixedLenFeature(int(batch_size*(n_t+1)*n*n*2), tf.float32),
+        'input': tf.io.FixedLenFeature(int(batch_size*n_t*n*n*2), tf.float32),
         'output': tf.io.FixedLenFeature(int(batch_size*n_t*n_obs_max*3), tf.float32)
     }
     try:
         example = tf.io.parse_single_example(serialized_example, feature_description)
 
-        input_data = tf.reshape(example['input'], [batch_size,n_t+1,n,n,2])
-        input_data = input_data[:,:-1,:,:,:]
+        input_data = tf.reshape(example['input'], [batch_size,n_t,n,n,2])
         input_data_ssh = normalise_ssh(input_data[:,:,:,:,0])
         input_data_sst = normalise_sst(input_data[:,:,:,:,1])
         input_data = tf.transpose(tf.stack((input_data_ssh,input_data_sst),axis=-1),perm=[0,1,4,2,3])

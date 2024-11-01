@@ -78,7 +78,6 @@ def save_files(center):
     coord_grid = grid_coords(data_bath, n, L_x, L_y, lon0, lat0)
 
     for t in range(n_days):
-        # start = time.time() 
         date_loop = date_start + timedelta(days=t)
 
         if date_loop>date(2020,12,31):
